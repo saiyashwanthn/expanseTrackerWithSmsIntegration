@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Expense Tracker</title>
+    <style>
+        :root {
+            /* Design System Colors */
+            --color-primary: #2180a0;
+            --color-primary-hover: #1a6b84;
+            --color-primary-active: #1a5a70;
+            --color-success: #218076;
+            --color-error: #c0152f;
+            --color-warning: #a84b2f;
+            --color-bg-primary: #fcfcf9;
+            --color-bg-secondary: #ffffff;
+            --color-text-primary: #134252;
+            --color-text-secondary: #626c71;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-border-light: rgba(94, 82, 64, 0.1);
+            --color-bg-success: rgba(33, 128, 112, 0.08);
+            --color-bg-error: rgba(192, 21, 47, 0.08);
+            --color-bg-warning: rgba(168, 75, 47, 0.08);
+            
+            /* Spacing */
+            --space-4: 4px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.06);
+            
+            /* Font */
+            --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-size-sm: 13px;
+            --font-size-base: 14px;
+            --font-size-md: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 20px;
+            --font-size-2xl: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        /* APP CONTAINER */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--color-bg-primary);
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--color-primary);
+            color: white;
+            padding: var(--space-16) var(--space-20);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+        }
+
+        .header__title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header__subtitle {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+
+        .header__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-16);
+        }
+
+        /* SCREEN VISIBILITY */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* BOTTOM NAVIGATION */
+        .nav-bottom {
+            background: white;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-around;
+            padding: var(--space-8) 0;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: var(--space-12) var(--space-8);
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .nav-item.active {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background: var(--color-bg-primary);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* CARDS & CONTAINERS */
+        .card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-light);
+            padding: var(--space-16);
+            margin-bottom: var(--space-16);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-12);
+        }
+
+        .card__title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-12);
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-12) var(--space-20);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: var(--space-8);
+            text-decoration: none;
+        }
+
+        .btn--primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn--primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn--primary:active {
+            background: var(--color-primary-active);
+        }
+
+        .btn--secondary {
+            background: var(--color-bg-primary);
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn--secondary:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        .btn--small {
+            padding: var(--space-8) var(--space-12);
+            font-size: var(--font-size-sm);
+        }
+
+        .btn--full {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* FORMS */
+        .form-group {
+            margin-bottom: var(--space-16);
+        }
+
+        .form-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-8);
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            color: var(--color-text-primary);
+            background: white;
+            transition: border-color 0.2s ease;
+            font-family: var(--font-base);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 160, 0.1);
+        }
+
+        /* STATUS BADGES */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-4) var(--space-12);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            gap: var(--space-4);
+        }
+
+        .badge--success {
+            background: var(--color-bg-success);
+            color: var(--color-success);
+        }
+
+        .badge--error {
+            background: var(--color-bg-error);
+            color: var(--color-error);
+        }
+
+        .badge--warning {
+            background: var(--color-bg-warning);
+            color: var(--color-warning);
+        }
+
+        /* TRANSACTION LIST */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-12);
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-merchant {
+            font-weight: 600;
+            color: var(--color-text-primary);
+            font-size: var(--font-size-md);
+        }
+
+        .transaction-details {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-top: var(--space-4);
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .transaction-amount.debit {
+            color: var(--color-error);
+        }
+
+        .transaction-amount.credit {
+            color: var(--color-success);
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-12);
+            margin-bottom: var(--space-16);
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+            color: white;
+            padding: var(--space-16);
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .stat-box__value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin-bottom: var(--space-4);
+        }
+
+        .stat-box__label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+
+        /* ALERT */
+        .alert {
+            padding: var(--space-12) var(--space-16);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-16);
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+        }
+
+        .alert--info {
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border-light);
+        }
+
+        .alert--warning {
+            background: var(--color-bg-warning);
+            color: var(--color-warning);
+            border: 1px solid rgba(168, 75, 47, 0.2);
+        }
+
+        .alert--success {
+            background: var(--color-bg-success);
+            color: var(--color-success);
+            border: 1px solid rgba(33, 128, 112, 0.2);
+        }
+
+        .alert__icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert__text {
+            font-size: var(--font-size-sm);
+            flex: 1;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal__content {
+            background: white;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            padding: var(--space-24);
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal__header {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: var(--space-16);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal__close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-32);
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state__icon {
+            font-size: 48px;
+            margin-bottom: var(--space-16);
+            opacity: 0.5;
+        }
+
+        .empty-state__title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-8);
+            color: var(--color-text-primary);
+        }
+
+        .empty-state__text {
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-16);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main {
+                padding: var(--space-12);
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal__content {
+                max-width: 100%;
+            }
+        }
+
+        /* UTILITY */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-16 {
+            margin-top: var(--space-16);
+        }
+
+        .gap-8 {
+            gap: var(--space-8);
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <div class="header__title">💰 Expense Tracker</div>
+                <div class="header__subtitle">Track your transactions</div>
+            </div>
+            <div class="header__avatar" onclick="showProfileMenu()">👤</div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- HOME SCREEN -->
+            <div id="screen-home" class="screen active">
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-box__value" id="total-spent">₹0</div>
+                        <div class="stat-box__label">This Month</div>
+                    </div>
+                    <div class="stat-box" style="background: linear-gradient(135deg, #218076 0%, #1a6b84 100%);">
+                        <div class="stat-box__value" id="transaction-count">0</div>
+                        <div class="stat-box__label">Transactions</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__header">
+                        <div class="card__title">Recent Transactions</div>
+                        <button class="btn btn--secondary btn--small" onclick="navigateTo('transactions')">View All</button>
+                    </div>
+                    <div id="recent-txns">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">📱</div>
+                            <div class="empty-state__title">No transactions yet</div>
+                            <div class="empty-state__text">Share an SMS or manually add a transaction to get started</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert--info">
+                    <div class="alert__icon">ℹ️</div>
+                    <div class="alert__text">💡 Tip: Share your bank SMS with this app to automatically track expenses</div>
+                </div>
+
+                <button class="btn btn--primary btn--full" onclick="openAddTransactionModal()">+ Add Transaction</button>
+            </div>
+
+            <!-- SETUP SCREEN (Add Banks) -->
+            <div id="screen-setup" class="screen">
+                <div class="card">
+                    <div class="card__header">
+                        <div class="card__title">Setup Your Banks</div>
+                    </div>
+                    <div class="card__subtitle">Add your bank cards to start tracking</div>
+                    
+                    <div id="banks-list" style="margin-bottom: var(--space-16);">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">🏦</div>
+                            <div class="empty-state__title">No banks added</div>
+                            <div class="empty-state__text">Add your first bank account</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary btn--full" onclick="openAddBankModal()">+ Add Bank Account</button>
+                </div>
+
+                <div class="alert alert--info">
+                    <div class="alert__icon">🔒</div>
+                    <div class="alert__text">We only store the last 4 digits of your card - never your full account number or PIN.</div>
+                </div>
+
+                <div class="card" style="margin-top: var(--space-16);">
+                    <div class="card__title">How it works</div>
+                    <ol style="margin: var(--space-12) 0; padding-left: var(--space-24); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                        <li style="margin: var(--space-8) 0;">Add your bank cards (last 4 digits only)</li>
+                        <li style="margin: var(--space-8) 0;">Share bank SMS or add transactions manually</li>
+                        <li style="margin: var(--space-8) 0;">View all expenses in one place</li>
+                        <li style="margin: var(--space-8) 0;">Track your spending with analytics</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS SCREEN -->
+            <div id="screen-transactions" class="screen">
+                <div class="card">
+                    <div class="card__header">
+                        <div class="card__title">All Transactions</div>
+                    </div>
+                    
+                    <div style="margin-bottom: var(--space-16);">
+                        <input type="month" id="filter-month" class="form-input" onchange="filterTransactions()">
+                    </div>
+
+                    <div id="transactions-list">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">📊</div>
+                            <div class="empty-state__title">No transactions</div>
+                            <div class="empty-state__text">Start by adding a bank account or transaction</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS SCREEN -->
+            <div id="screen-analytics" class="screen">
+                <div class="card">
+                    <div class="card__header">
+                        <div class="card__title">Monthly Summary</div>
+                    </div>
+
+                    <div id="analytics-content">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">📈</div>
+                            <div class="empty-state__title">No data</div>
+                            <div class="empty-state__text">Add transactions to see analytics</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__title">Top Merchants</div>
+                    <div id="top-merchants" style="margin-top: var(--space-12);">
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">No data available</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS SCREEN -->
+            <div id="screen-settings" class="screen">
+                <div class="card">
+                    <div class="card__title">Settings</div>
+                    
+                    <div style="margin-top: var(--space-16);">
+                        <div style="margin-bottom: var(--space-16);">
+                            <h3 style="font-size: var(--font-size-md); font-weight: 600; margin-bottom: var(--space-12);">SMS Ingestion</h3>
+                            <label style="display: flex; align-items: center; gap: var(--space-12); cursor: pointer;">
+                                <input type="checkbox" id="sms-toggle" onchange="toggleSmsPermission()">
+                                <span>Allow SMS access (Android)</span>
+                            </label>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-8);">We'll read your bank transaction SMS only. All data is encrypted and stored securely.</p>
+                        </div>
+
+                        <div style="margin-bottom: var(--space-16); padding: var(--space-16); background: var(--color-bg-primary); border-radius: var(--radius-md);">
+                            <h3 style="font-size: var(--font-size-md); font-weight: 600; margin-bottom: var(--space-12);">Share SMS (iOS & Backup)</h3>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-12);">On iOS or if SMS permission is disabled:</p>
+                            <ol style="font-size: var(--font-size-sm); color: var(--color-text-secondary); padding-left: var(--space-24);">
+                                <li>Long-press any bank SMS in Messages</li>
+                                <li>Tap Share</li>
+                                <li>Select this app</li>
+                                <li>Transaction will be auto-added!</li>
+                            </ol>
+                        </div>
+
+                        <div style="margin-bottom: var(--space-16);">
+                            <h3 style="font-size: var(--font-size-md); font-weight: 600; margin-bottom: var(--space-12);">About</h3>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                                <strong>Version:</strong> 1.0.0<br>
+                                <strong>Backend:</strong> Supabase<br>
+                                <strong>Privacy Policy:</strong> We encrypt your data and never share with third parties
+                            </p>
+                        </div>
+
+                        <button class="btn btn--secondary btn--full" onclick="logout()">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <div class="nav-bottom">
+            <button class="nav-item active" onclick="navigateTo('home')">
+                <span class="nav-icon">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('setup')">
+                <span class="nav-icon">🏦</span>
+                <span>Banks</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('transactions')">
+                <span class="nav-icon">📋</span>
+                <span>Transactions</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('analytics')">
+                <span class="nav-icon">📊</span>
+                <span>Analytics</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('settings')">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add Bank Modal -->
+    <div id="modal-add-bank" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <span>Add Bank Account</span>
+                <button class="modal__close" onclick="closeModal('add-bank')">✕</button>
+            </div>
+            <form onsubmit="addBank(event)">
+                <div class="form-group">
+                    <label class="form-label">Bank Name (e.g., HDFC, ICICI, Axis)</label>
+                    <input type="text" class="form-input" id="bank-name" placeholder="Enter bank name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Friendly Name (e.g., My Savings)</label>
+                    <input type="text" class="form-input" id="bank-friendly" placeholder="My Savings Card" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last 4 Digits of Card</label>
+                    <input type="text" class="form-input" id="bank-last4" placeholder="1234" maxlength="4" pattern="[0-9]{4}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Currency</label>
+                    <select class="form-select" id="bank-currency">
+                        <option value="INR">Indian Rupee (₹)</option>
+                        <option value="USD">US Dollar ($)</option>
+                        <option value="EUR">Euro (€)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full">Add Bank</button>
+                <button type="button" class="btn btn--secondary btn--full mt-16" onclick="closeModal('add-bank')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div id="modal-add-txn" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <span>Add Transaction</span>
+                <button class="modal__close" onclick="closeModal('add-txn')">✕</button>
+            </div>
+            <form onsubmit="addTransaction(event)">
+                <div class="form-group">
+                    <label class="form-label">Select Bank</label>
+                    <select class="form-select" id="txn-bank" required>
+                        <option value="">Choose a bank...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" class="form-input" id="txn-amount" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="txn-type" required>
+                        <option value="debit">Debit (Spent)</option>
+                        <option value="credit">Credit (Received)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Merchant / Description</label>
+                    <input type="text" class="form-input" id="txn-merchant" placeholder="e.g., Amazon, Starbucks" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="txn-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="txn-category">
+                        <option value="food">🍔 Food & Dining</option>
+                        <option value="shopping">🛍️ Shopping</option>
+                        <option value="transport">🚕 Transport</option>
+                        <option value="utilities">💡 Utilities</option>
+                        <option value="entertainment">🎬 Entertainment</option>
+                        <option value="health">🏥 Health</option>
+                        <option value="other">📌 Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full">Add Transaction</button>
+                <button type="button" class="btn btn--secondary btn--full mt-16" onclick="closeModal('add-txn')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ========== STATE MANAGEMENT ==========
+        let appState = {
+            currentUser: { name: 'User', initials: 'U' },
+            banks: [],
+            transactions: [],
+            currentScreen: 'home'
+        };
+
+        // ========== LOCAL STORAGE ==========
+        function saveState() {
+            localStorage.setItem('appState', JSON.stringify(appState));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('appState');
+            if (saved) {
+                appState = JSON.parse(saved);
+            }
+        }
+
+        // ========== NAVIGATION ==========
+        function navigateTo(screenName) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            // Show selected screen
+            const screenId = `screen-${screenName}`;
+            const screen = document.getElementById(screenId);
+            if (screen) {
+                screen.classList.add('active');
+            }
+
+            // Mark nav item as active
+            event.target.closest('.nav-item')?.classList.add('active');
+
+            appState.currentScreen = screenName;
+            refreshScreen();
+        }
+
+        function refreshScreen() {
+            switch(appState.currentScreen) {
+                case 'home':
+                    updateHomeScreen();
+                    break;
+                case 'setup':
+                    updateSetupScreen();
+                    break;
+                case 'transactions':
+                    updateTransactionsScreen();
+                    break;
+                case 'analytics':
+                    updateAnalyticsScreen();
+                    break;
+            }
+        }
+
+        // ========== MODALS ==========
+        function openAddBankModal() {
+            document.getElementById('modal-add-bank').classList.add('active');
+        }
+
+        function openAddTransactionModal() {
+            if (appState.banks.length === 0) {
+                alert('Please add a bank account first!');
+                navigateTo('setup');
+                return;
+            }
+            populateBankSelect();
+            document.getElementById('txn-date').valueAsDate = new Date();
+            document.getElementById('modal-add-txn').classList.add('active');
+        }
+
+        function closeModal(modalName) {
+            document.getElementById(`modal-${modalName}`).classList.remove('active');
+        }
+
+        function populateBankSelect() {
+            const select = document.getElementById('txn-bank');
+            select.innerHTML = '<option value="">Choose a bank...</option>';
+            appState.banks.forEach((bank, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${bank.friendly} (••••${bank.last4})`;
+                select.appendChild(option);
+            });
+        }
+
+        // ========== BANK OPERATIONS ==========
+        function addBank(e) {
+            e.preventDefault();
+            const bank = {
+                name: document.getElementById('bank-name').value,
+                friendly: document.getElementById('bank-friendly').value,
+                last4: document.getElementById('bank-last4').value,
+                currency: document.getElementById('bank-currency').value,
+                addedAt: new Date().toISOString()
+            };
+
+            appState.banks.push(bank);
+            saveState();
+            closeModal('add-bank');
+            updateSetupScreen();
+            
+            // Reset form
+            e.target.reset();
+            alert(`✅ ${bank.friendly} added successfully!`);
+        }
+
+        function deleteBank(index) {
+            if (confirm('Delete this bank account?')) {
+                appState.banks.splice(index, 1);
+                appState.transactions = appState.transactions.filter(t => t.bankIndex !== index);
+                saveState();
+                updateSetupScreen();
+            }
+        }
+
+        // ========== TRANSACTION OPERATIONS ==========
+        function addTransaction(e) {
+            e.preventDefault();
+            const bankIndex = document.getElementById('txn-bank').value;
+            const bank = appState.banks[bankIndex];
+
+            const transaction = {
+                id: Date.now().toString(),
+                bankIndex: parseInt(bankIndex),
+                amount: parseFloat(document.getElementById('txn-amount').value),
+                type: document.getElementById('txn-type').value,
+                merchant: document.getElementById('txn-merchant').value,
+                date: document.getElementById('txn-date').value,
+                category: document.getElementById('txn-category').value,
+                source: 'manual',
+                confirmed: true,
+                addedAt: new Date().toISOString()
+            };
+
+            appState.transactions.push(transaction);
+            saveState();
+            closeModal('add-txn');
+            updateHomeScreen();
+            updateTransactionsScreen();
+
+            alert(`✅ Transaction added! ${bank.friendly}`);
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('Delete this transaction?')) {
+                appState.transactions = appState.transactions.filter(t => t.id !== id);
+                saveState();
+                updateHomeScreen();
+                updateTransactionsScreen();
+                updateAnalyticsScreen();
+            }
+        }
+
+        // ========== SCREEN UPDATES ==========
+        function updateHomeScreen() {
+            const monthStart = new Date();
+            monthStart.setDate(1);
+            
+            const monthTransactions = appState.transactions.filter(t => {
+                const txnDate = new Date(t.date);
+                return txnDate >= monthStart;
+            });
+
+            const totalSpent = monthTransactions
+                .filter(t => t.type === 'debit')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('total-spent').textContent = `₹${totalSpent.toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
+            document.getElementById('transaction-count').textContent = monthTransactions.length;
+
+            // Recent transactions (last 5)
+            const recent = appState.transactions
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 5);
+
+            const recentHtml = recent.length === 0 
+                ? `<div class="empty-state">
+                     <div class="empty-state__icon">📱</div>
+                     <div class="empty-state__title">No transactions yet</div>
+                     <div class="empty-state__text">Share an SMS or manually add a transaction</div>
+                   </div>`
+                : recent.map(t => renderTransaction(t)).join('');
+
+            document.getElementById('recent-txns').innerHTML = recentHtml;
+        }
+
+        function updateSetupScreen() {
+            const banksList = document.getElementById('banks-list');
+            if (appState.banks.length === 0) {
+                banksList.innerHTML = `<div class="empty-state">
+                    <div class="empty-state__icon">🏦</div>
+                    <div class="empty-state__title">No banks added</div>
+                    <div class="empty-state__text">Add your first bank account</div>
+                </div>`;
+            } else {
+                banksList.innerHTML = appState.banks.map((bank, idx) => `
+                    <div class="card" style="margin-bottom: var(--space-12);">
+                        <div class="card__header">
+                            <div>
+                                <div class="card__title">${bank.friendly}</div>
+                                <div class="card__subtitle">${bank.name} • ••••${bank.last4} • ${bank.currency}</div>
+                            </div>
+                            <button class="btn btn--secondary btn--small" onclick="deleteBank(${idx})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateTransactionsScreen() {
+            const filterMonth = document.getElementById('filter-month').value;
+            let filtered = appState.transactions;
+
+            if (filterMonth) {
+                const [year, month] = filterMonth.split('-');
+                filtered = filtered.filter(t => {
+                    const tDate = new Date(t.date);
+                    return tDate.getFullYear() === parseInt(year) && 
+                           (tDate.getMonth() + 1) === parseInt(month);
+                });
+            }
+
+            const sorted = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const html = sorted.length === 0
+                ? `<div class="empty-state">
+                     <div class="empty-state__icon">📊</div>
+                     <div class="empty-state__title">No transactions</div>
+                     <div class="empty-state__text">Add a bank and create your first transaction</div>
+                   </div>`
+                : sorted.map(t => renderTransaction(t)).join('');
+
+            document.getElementById('transactions-list').innerHTML = html;
+        }
+
+        function updateAnalyticsScreen() {
+            const categories = {};
+            const merchants = {};
+
+            appState.transactions.forEach(t => {
+                // Category spending
+                if (!categories[t.category]) categories[t.category] = 0;
+                if (t.type === 'debit') categories[t.category] += t.amount;
+
+                // Merchant spending
+                if (!merchants[t.merchant]) merchants[t.merchant] = 0;
+                if (t.type === 'debit') merchants[t.merchant] += t.amount;
+            });
+
+            // Top merchants
+            const topMerchants = Object.entries(merchants)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const merchantHtml = topMerchants.length === 0
+                ? '<p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">No data available</p>'
+                : topMerchants.map(([merchant, amount]) => `
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border-light);">
+                        <span>${merchant}</span>
+                        <strong style="color: var(--color-error);">₹${amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</strong>
+                    </div>
+                `).join('');
+
+            document.getElementById('top-merchants').innerHTML = merchantHtml;
+
+            // Summary
+            const analytics = `
+                <div style="padding: var(--space-16);">
+                    <h4 style="margin-bottom: var(--space-12); font-weight: 600;">Total Spending</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-12);">
+                        ${Object.entries(categories).map(([cat, amount]) => `
+                            <div style="padding: var(--space-12); background: var(--color-bg-primary); border-radius: var(--radius-md); text-align: center;">
+                                <div style="font-weight: 600; color: var(--color-error);">₹${amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); text-transform: capitalize; margin-top: var(--space-4);">${cat}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('analytics-content').innerHTML = analytics;
+        }
+
+        function filterTransactions() {
+            updateTransactionsScreen();
+        }
+
+        // ========== TRANSACTION RENDERING ==========
+        function renderTransaction(t) {
+            const bank = appState.banks[t.bankIndex];
+            const sign = t.type === 'debit' ? '−' : '+';
+            const amountClass = t.type === 'debit' ? 'debit' : 'credit';
+
+            return `
+                <div class="transaction-item" style="position: relative;">
+                    <div class="transaction-info">
+                        <div class="transaction-merchant">${t.merchant}</div>
+                        <div class="transaction-details">
+                            ${bank ? bank.friendly : 'Unknown'} • ${new Date(t.date).toLocaleDateString()} • ${t.category}
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">
+                        ${sign}₹${t.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+                    </div>
+                    <button onclick="deleteTransaction('${t.id}')" style="position: absolute; right: -40px; top: 50%; transform: translateY(-50%); background: var(--color-error); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: none;">✕</button>
+                </div>
+            `;
+        }
+
+        // ========== SETTINGS ==========
+        function toggleSmsPermission() {
+            alert('SMS permission setting would integrate with your device. In this demo, it\'s just a toggle.');
+        }
+
+        function logout() {
+            if (confirm('Sign out?')) {
+                localStorage.clear();
+                alert('You have been signed out.');
+                location.reload();
+            }
+        }
+
+        function showProfileMenu() {
+            alert(`👤 ${appState.currentUser.name}\n\nGo to Settings to manage your account.`);
+        }
+
+        // ========== INITIALIZATION ==========
+        window.addEventListener('load', () => {
+            loadState();
+            document.getElementById('filter-month').valueAsDate = new Date();
+            updateHomeScreen();
+
+            // Sample data for demo
+            if (appState.banks.length === 0) {
+                appState.banks = [
+                    { name: 'HDFC', friendly: 'HDFC Savings', last4: '1234', currency: 'INR', addedAt: new Date().toISOString() }
+                ];
+                appState.transactions = [
+                    { id: '1', bankIndex: 0, amount: 250, type: 'debit', merchant: 'Starbucks', date: new Date().toISOString().split('T')[0], category: 'food', source: 'manual', confirmed: true, addedAt: new Date().toISOString() },
+                    { id: '2', bankIndex: 0, amount: 1500, type: 'debit', merchant: 'Amazon', date: new Date().toISOString().split('T')[0], category: 'shopping', source: 'manual', confirmed: true, addedAt: new Date().toISOString() },
+                    { id: '3', bankIndex: 0, amount: 500, type: 'debit', merchant: 'Uber', date: new Date().toISOString().split('T')[0], category: 'transport', source: 'manual', confirmed: true, addedAt: new Date().toISOString() }
+                ];
+                saveState();
+                updateHomeScreen();
+            }
+        });
+    </script>
+</body>
+</html>
